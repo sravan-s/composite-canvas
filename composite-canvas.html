@@ -1,0 +1,19 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-d3/polymer-d3-imports.html">
+<link rel="stylesheet" type="text/css" href="composite-canvas-global.css">
+<script type="text/javascript" src="composite-canvas-lib.js"></script>
+<script type="text/javascript" src="../crossfilter/crossfilter.js"></script>
+<dom-module id="composite-canvas">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Composite Canvas</h2>
+    <button on-tap="remTwoRows">Remove 2 rows</button>
+    <box-plot externals="{{externals}}"></box-plot>
+    <scatter-plot externals="{{externals}}"></scatter-plot>
+  </template>
+  <script src="composite-canvas.js"></script>
+</dom-module>
