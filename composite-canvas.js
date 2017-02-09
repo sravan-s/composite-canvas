@@ -74,32 +74,56 @@ Polymer({
 
   attached: function() {
     this.async(() => {
+      // select and register chart
       let boxPlot = this.querySelector('box-plot');
-      let scatterPlot = this.querySelector('scatter-plot');
+      let scatterPlot = this.querySelector('pie-chart');
       this.registerChart(boxPlot);
       this.registerChart(scatterPlot);
-      this._source = crossfilter(this.source).dimension(r => r);
-      this.charts = [boxPlot, scatterPlot];
-      this.drawMaps(this.charts, {
-        source: this.source,
+      this._sourceDimension = crossfilter(this.source).dimension(r => r);
+      var processed = this.initCharts([boxPlot, scatterPlot], {
+        dimension: this._sourceDimension,
         externals: this.externals
       }, arr => arr);
+      this.charts = processed.charts;
+      this._sourceDimension = processed.newDimension;
     });
   },
 
   toggleData: function(e) {
     console.log(e.detail.filter);
-    console.log(this._source.filter(e.detail.filter).top(Infinity));
-    console.log('toggles');
+    if (!e.detail.chart) {
+      console.warn('Event source couldn\'t be identified');
+      return false;
+    }
+    let otherCharts = this.charts.filter(chart => chart.chartId !=  e.detail.chart.chartId);
+    let processed = this.initCharts(otherCharts, {
+      externals: this.externals,
+      dimension: this._sourceDimension
+    }, e.detail.filter);
+    this._sourceDimension = processed.newDimension;
   },
 
-  resetCharts: function() {},
+  resetAllCharts: function() {
+    this.charts = this.initCharts(this.charts, {
+      source: this.source,
+      externals: this.externals
+    }, arr => arr);
+    this.charts.forEach(chart => chart.draw());
+  },
 
+  // register chart to chart-array
   registerChart: function(chart) {
-    chart.chartId = PolymerD3.utilities.getUUID();
-    this.charts.push(chart);
+    // search a list of available charts, push only if isn't present
+    let chartIds = this.charts.map(chart => chart.id);
+    if (chartIds.indexOf(chart.chartId) == -1) {
+      chart.chartId = PolymerD3.utilities.getUUID();
+      this.charts.push(chart);
+    } else {
+      console.warn('Chart already present');
+    }
   },
 
+  // removes chart form chart array
   deRegisterChart: function(chart) {
     var indexToRem;
     this.charts.forEach((c, i) => {
@@ -107,28 +131,26 @@ Polymer({
         indexToRem = i;
       }
     });
-    this.splice('charts', indexToRem, 1);
+    if (indexToRem != null) {
+      this.splice('charts', indexToRem, 1);
+    }
   },
 
-  drawMaps: function(mapsArr, config, filter) {
-    this.charts = this.charts.map(chart => {
+  initCharts: function(chartArr, config, filter) {
+    let _source = config.dimension.filter(filter).top(Infinity);
+    this.charts = chartArr.map(chart => {
       chart.editMode = true;
-      chart.source = filter(config.source);
+      chart.source = _source;
       chart.externals = config.externals;
       return chart;
     });
-    return this.charts;
+    return {
+      charts: this.charts,
+      newDimension: config.dimension
+    };
   },
 
   remTwoRows: function() {
-    this.resetCharts();
-    // this.charts = this.drawMaps(this.charts, {
-    //   source: this.source,
-    //   externals: this.externals
-    // }, arr => {
-    //   let _src = crossfilter(arr);
-    //   let filterByVal1 = _src.dimension(row => row);
-    //   return filterByVal1.filter();
-    // });
+    this.resetAllCharts();
   }
 });

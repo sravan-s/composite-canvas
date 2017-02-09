@@ -246,7 +246,7 @@ Polymer({
     var me = this;
     if (elem.classed('box-g')) {
       elem.classed('opacity-none', !elem.classed('opacity-none'));
-      this.fire('TOGGLE', {toggle: 'ON', chartId: this, element: e.target, filter: function(row) {
+      this.fire('TOGGLE', {toggle: 'ON', chart: this, element: e.target, filter: function(row) {
         var selected = [];
         d3.select(me).selectAll('g.box-g.opacity-none').each(s => {
           selected.push(s[0])
@@ -259,7 +259,7 @@ Polymer({
     g.classList.indexOf(opacity)
   },
   resetGenerator: function(e) {
-    this.fire('RESET', {chartId: this});
+    this.fire('RESET', {chart: this});
   },
   reset: function() {
     var groups = d3.select(this).selectAll('g.box-g').classed('opacity-none', false);
