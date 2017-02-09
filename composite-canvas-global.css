@@ -33,3 +33,6 @@ composite-canvas  grouped-composite-chart .line {
 composite-canvas #display-component {
   z-index: 110;
 }
+composite-canvas .opacity-none {
+  opacity: .3 !important;
+}

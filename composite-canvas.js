@@ -1,6 +1,3 @@
-// Rules: Always try to write things in functional programming: pure functions, composition et.al.
-// Try ES6 in let, const, arrow functions
-// Use map, reduce, filter instead of for, while..
 Polymer({
 
   is: 'composite-canvas',
@@ -63,19 +60,54 @@ Polymer({
           value: 3
         }]
       }
+    },
+    charts: {
+      type: Array,
+      value: () => []
     }
+  },
+
+  listeners: {
+    'TOGGLE': 'toggleData',
+    'RESET': 'resetCharts'
   },
 
   attached: function() {
     this.async(() => {
       let boxPlot = this.querySelector('box-plot');
       let scatterPlot = this.querySelector('scatter-plot');
+      this.registerChart(boxPlot);
+      this.registerChart(scatterPlot);
+      this._source = crossfilter(this.source).dimension(r => r);
       this.charts = [boxPlot, scatterPlot];
       this.drawMaps(this.charts, {
         source: this.source,
         externals: this.externals
       }, arr => arr);
     });
+  },
+
+  toggleData: function(e) {
+    console.log(e.detail.filter);
+    console.log(this._source.filter(e.detail.filter).top(Infinity));
+    console.log('toggles');
+  },
+
+  resetCharts: function() {},
+
+  registerChart: function(chart) {
+    chart.chartId = PolymerD3.utilities.getUUID();
+    this.charts.push(chart);
+  },
+
+  deRegisterChart: function(chart) {
+    var indexToRem;
+    this.charts.forEach((c, i) => {
+      if (c.chartId == chart.chartId) {
+        indexToRem = i;
+      }
+    });
+    this.splice('charts', indexToRem, 1);
   },
 
   drawMaps: function(mapsArr, config, filter) {
@@ -89,13 +121,14 @@ Polymer({
   },
 
   remTwoRows: function() {
-    this.charts = this.drawMaps(this.charts, {
-      source: this.source,
-      externals: this.externals
-    }, arr => {
-      let _src = crossfilter(arr);
-      let filterByVal1 = _src.dimension(row => row);
-      return filterByVal1.filter(row => (row[1] > 20 && row[1] < 50)).top(Infinity);
-    });
+    this.resetCharts();
+    // this.charts = this.drawMaps(this.charts, {
+    //   source: this.source,
+    //   externals: this.externals
+    // }, arr => {
+    //   let _src = crossfilter(arr);
+    //   let filterByVal1 = _src.dimension(row => row);
+    //   return filterByVal1.filter();
+    // });
   }
 });
