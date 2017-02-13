@@ -75,12 +75,15 @@ Polymer({
   attached: function() {
     this.async(() => {
       // select and register chart
+      let barChart = this.querySelector('bar-chart');
+      barChart.initStackedBarChart();
       let boxPlot = this.querySelector('box-plot');
       let scatterPlot = this.querySelector('radar-chart');
       this.registerChart(boxPlot);
+      this.registerChart(barChart);
       this.registerChart(scatterPlot);
       this._sourceDimension = crossfilter(this.source).dimension(r => r);
-      var processed = this.initCharts([boxPlot, scatterPlot], {
+      var processed = this.initCharts([boxPlot, scatterPlot, barChart], {
         dimension: this._sourceDimension,
         externals: this.externals
       }, arr => arr);
@@ -138,14 +141,14 @@ Polymer({
 
   initCharts: function(chartArr, config, filter) {
     let _source = config.dimension.filter(filter).top(Infinity);
-    this.charts = chartArr.map(chart => {
+    let charts = chartArr.map(chart => {
       chart.editMode = true;
       chart.source = _source;
       chart.externals = config.externals;
       return chart;
     });
     return {
-      charts: this.charts,
+      charts: charts,
       newDimension: config.dimension
     };
   },
