@@ -76,7 +76,7 @@ Polymer({
     this.async(() => {
       // select and register chart
       let boxPlot = this.querySelector('box-plot');
-      let scatterPlot = this.querySelector('pie-chart');
+      let scatterPlot = this.querySelector('radar-chart');
       this.registerChart(boxPlot);
       this.registerChart(scatterPlot);
       this._sourceDimension = crossfilter(this.source).dimension(r => r);
