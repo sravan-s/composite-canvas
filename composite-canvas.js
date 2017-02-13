@@ -107,9 +107,9 @@ Polymer({
   },
 
   resetAllCharts: function() {
-    this.charts = this.initCharts(this.charts, {
-      source: this.source,
-      externals: this.externals
+    this.initCharts(this.charts, {
+      externals: this.externals,
+      dimension: this._sourceDimension
     }, arr => arr);
     this.charts.forEach(chart => chart.draw());
   },
