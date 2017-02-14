@@ -20,6 +20,7 @@ composite-canvas .settings-icon {
   position: absolute;
   right: 1em;
   top: 6px;
+  z-index: 9;
 }
 
 composite-canvas  pareto-chart .line,
@@ -35,4 +36,11 @@ composite-canvas #display-component {
 }
 composite-canvas .opacity-none {
   opacity: .3 !important;
+}
+
+composite-canvas .settings-wrap {
+  position: relative;
+}
+composite-canvas .settings-icon.inner  {
+  right: 50px;
 }
