@@ -120,6 +120,9 @@ Polymer({
     let chartIds = this.charts.map(chart => chart.id);
     if (chartIds.indexOf(chart.chartId) == -1) {
       chart.chartId = PolymerD3.utilities.getUUID();
+      if (chart.attachListeners) { // goo to have: check if attachListeners is a function
+        chart.attachListeners();
+      }
       this.charts.push(chart);
     } else {
       console.warn('Chart already present');
