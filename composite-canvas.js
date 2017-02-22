@@ -198,32 +198,33 @@ Polymer({
       config.queries = [];
     }
 
-    function combineWith(index, str, prefix) {
+    // function combineWith(index, str, prefix) {
+    function combineWith(finalStr, str, index, prefix) {
       if (index == 0) {
         prefix = ''
       };
-      return prefix + ' ' + str + ' ';
+      return finalStr + ' ' + prefix + ' ' + str + ' ';
     }
 
-    function combineWithAnd(index, str) {
-      return combineWith(index, str, 'AND');
+    // function combineWithAnd(index, str) {
+    function combineWithAnd(finalStr, str, index) {
+      return combineWith(finalStr, str, index, 'AND');
     }
 
-    function combineWithOr(index, str) {
-      return combineWith(index, str, 'OR');
+    // function combineWithOr(index, str) {
+    function combineWithOr(finalStr, str, index) {
+      return combineWith(finalStr, str, index, 'OR');
     }
 
-    // uses array.reduce()
-    let newQuery = config.queries.reduce((finalStr, query, index) => {
-      let interalQueries = query.reduce((subStr, subQuery, subIndex) => {
-        return subStr + combineWithOr(subIndex, subQuery);
-      }, '');
-      return finalStr + combineWithAnd(index, interalQueries);
+    let newQuery = config.queries.reduce((finalQuery, queryArr, index) => {
+      if (queryArr.length) {
+        return combineWithAnd(finalQuery, '(' + queryArr.reduce(combineWithOr, '') + ')', index);
+      } else {
+        return combineWithAnd(finalQuery, '', 0);
+      }
     }, '');
 
     this._pargraphQuery = this.paragraphQuery + ' ' + newQuery;
-
-    debugger;
 
     if (this.sourceVolume < this.crossfilterThreshold) {
       processor = this.$['cf-fe'];
