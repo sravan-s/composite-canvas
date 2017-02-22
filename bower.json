@@ -5,7 +5,8 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
     "polymer-d3": "git@github.com:arunsoman/polymer-d3.git",
-    "crossfilter": "1.x"
+    "crossfilter": "1.x",
+    "iron-ajax": "^1.4.3"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

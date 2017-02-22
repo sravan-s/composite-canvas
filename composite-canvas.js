@@ -64,6 +64,42 @@ Polymer({
     charts: {
       type: Array,
       value: () => []
+    },
+    // The query that run at paragraph,
+    // to be used for generating query
+    // donot modify
+    pargraphQuery: {
+      type: String,
+      // default value for testing
+      value: 'select * from demoTable'
+    },
+
+    // working copy of paragraphQuery
+    _pargraphQuery: {
+      type: String
+    },
+
+    // zeppelin noteBook at which para runs
+    notebookId: {
+      type: String
+    },
+
+    // url to connect to backend query executer
+    crossfilterExternal: {
+      type: String,
+      value: 'http://192.168.14.81:8082/api.json'
+    },
+    // threshold that is used to check if query should go to crossfilter or backend
+    crossfilterThreshold: {
+      type: Number,
+      value: 1000
+    },
+    // no: resources in filtered list
+    sourceVolume: {
+      type: Number
+    },
+    lastModifiedBy: {
+      type: String
     }
   },
 
@@ -72,8 +108,17 @@ Polymer({
     'RESET': 'resetCharts'
   },
 
+  observers: [
+    'pargraphQueryChanged(pargraphQuery)'
+  ],
+
+  pargraphQueryChanged: function(query) {
+    this.set('_pargraphQuery', query);
+  },
+
   attached: function() {
     this.async(() => {
+      this.set('sourceVolume', this.source.length);
       // select and register chart
       let barChart = this.querySelector('bar-chart');
       barChart.initStackedBarChart();
@@ -85,7 +130,8 @@ Polymer({
       this._sourceDimension = crossfilter(this.source).dimension(r => r);
       var processed = this.initCharts([boxPlot, scatterPlot, barChart], {
         dimension: this._sourceDimension,
-        externals: this.externals
+        externals: this.externals,
+        lastModifiedBy: null
       }, arr => arr);
       this.charts = processed.charts;
       this._sourceDimension = processed.newDimension;
@@ -99,9 +145,13 @@ Polymer({
       return false;
     }
     let otherCharts = this.charts.filter(chart => chart.chartId !=  e.detail.chart.chartId);
+    // runs cookQueries @ charts with cookQueryFunction
+    let queries = this.charts.filter(chart => chart.cookQuery).map(chart => chart.cookQuery());
     let processed = this.initCharts(otherCharts, {
       externals: this.externals,
-      dimension: this._sourceDimension
+      dimension: this._sourceDimension,
+      lastModifiedBy: e.detail.chart.chartId,
+      queries: queries
     }, e.detail.filter);
     this._sourceDimension = processed.newDimension;
   },
@@ -143,7 +193,52 @@ Polymer({
   },
 
   initCharts: function(chartArr, config, filter) {
+    let processor;
+    if (!config.queries) {
+      config.queries = [];
+    }
+
+    function combineWith(index, str, prefix) {
+      if (index == 0) {
+        prefix = ''
+      };
+      return prefix + ' ' + str + ' ';
+    }
+
+    function combineWithAnd(index, str) {
+      return combineWith(index, str, 'AND');
+    }
+
+    function combineWithOr(index, str) {
+      return combineWith(index, str, 'OR');
+    }
+
+    // uses array.reduce()
+    let newQuery = config.queries.reduce((finalStr, query, index) => {
+      let interalQueries = query.reduce((subStr, subQuery, subIndex) => {
+        return subStr + combineWithOr(subIndex, subQuery);
+      }, '');
+      return finalStr + combineWithAnd(index, interalQueries);
+    }, '');
+
+    this._pargraphQuery = this.paragraphQuery + ' ' + newQuery;
+
+    debugger;
+
+    if (this.sourceVolume < this.crossfilterThreshold) {
+      processor = this.$['cf-fe'];
+    } else {
+      processor = this.$['cf-be'];
+      // move logic to crossfilter backend
+    }
+    this.lastModifiedBy = config.lastModifiedBy;
+    processor.processData(filter, config.dimension).then(d => {
+      console.log(d);
+    });
+
+    // move to processData by frontend
     let _source = config.dimension.filter(filter).top(Infinity);
+    this.set('sourceVolume', _source.length);
     let charts = chartArr.map(chart => {
       chart.editMode = true;
       chart.source = _source;
