@@ -216,7 +216,7 @@ Polymer({
       return combineWith(finalStr, str, index, 'OR');
     }
 
-    let newQuery = config.queries.reduce((finalQuery, queryArr, index) => {
+    let newQuery = config.queries.filter(query => query.length).reduce((finalQuery, queryArr, index) => {
       if (queryArr.length) {
         return combineWithAnd(finalQuery, '(' + queryArr.reduce(combineWithOr, '') + ')', index);
       } else {
